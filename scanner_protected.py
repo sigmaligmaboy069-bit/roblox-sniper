@@ -43,16 +43,16 @@ DEFAULT_CONFIG = {
 }
 
 class Colors:
-    WHITE = '\\033[97m'
-    BRIGHT_RED = '\\033[91m'
-    RED = '\\033[31m'
-    GREEN = '\\033[92m'
-    DARK_GREEN = '\\033[32m'
-    GRAY = '\\033[90m'
-    DARK_GRAY = '\\033[2m\\033[37m'
-    ENDC = '\\033[0m'
-    BOLD = '\\033[1m'
-    DIM = '\\033[2m'
+    WHITE = ''
+    BRIGHT_RED = ''
+    RED = ''
+    GREEN = ''
+    DARK_GREEN = ''
+    GRAY = ''
+    DARK_GRAY = ''
+    ENDC = ''
+    BOLD = ''
+    DIM = ''
 
 class ConfigManager:
     @staticmethod
