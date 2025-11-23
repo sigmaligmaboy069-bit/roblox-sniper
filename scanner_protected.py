@@ -158,10 +158,10 @@ class MarketplaceScanner:
             return None
     
     def setup_sessions(self):
-        print(f"\\n{Colors.BOLD}{Colors.WHITE}{'='*70}{Colors.ENDC}")
+        print(f"\n{Colors.BOLD}{Colors.WHITE}{'='*70}{Colors.ENDC}")
         print(f"{Colors.BOLD}{Colors.WHITE}Magester's Hub - RobloxSniper{Colors.ENDC}")
-        print(f"{Colors.GRAY}Created by Magester | AEST {Colors.ENDC}")
-        print(f"{Colors.BOLD}{Colors.WHITE}{'='*70}{Colors.ENDC}\\n")
+        print(f"{Colors.GRAY}Created by Magester | AEST{Colors.ENDC}")
+        print(f"{Colors.BOLD}{Colors.WHITE}{'='*70}{Colors.ENDC}\n")
         
         self.log("Setting up BUYER account...", Colors.BRIGHT_RED)
         buyer_data = self.authenticate_account(self.accounts['buyer'], "BUYER")
@@ -414,9 +414,9 @@ class MarketplaceScanner:
             self.log("Scanner stopped successfully", Colors.GREEN)
 
 def main():
-    print(f"\\n{Colors.BOLD}{Colors.WHITE}Magester's Hub | Roblox Sniper{Colors.ENDC}")
+    print(f"\n{Colors.BOLD}{Colors.WHITE}Magester's Hub | Roblox Sniper{Colors.ENDC}")
     print(f"{Colors.GRAY}Thank You For Purchasing 5 Mil{Colors.ENDC}")
-    print(f"{Colors.WHITE}Roblox Sniper | Magester's Hub{Colors.ENDC}\\n")
+    print(f"{Colors.WHITE}Roblox Sniper | Magester's Hub{Colors.ENDC}\n")
     
     if not ACCOUNTS_FILE.exists():
         print(f"{Colors.RED}ERROR: accounts.json file not found!{Colors.ENDC}")
