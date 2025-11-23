@@ -1,0 +1,116 @@
+name: Build RobloxSniper for All Platforms
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller requests urllib3
+        
+    - name: Build executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onefile --name=RobloxSniper-Windows scanner_protected.py
+        
+    - name: Build executable (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --onefile --name=RobloxSniper-Mac scanner_protected.py
+        
+    - name: Build executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pyinstaller --onefile --name=RobloxSniper-Linux scanner_protected.py
+        
+    - name: Upload Windows artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: RobloxSniper-Windows
+        path: dist/RobloxSniper-Windows.exe
+        
+    - name: Upload macOS artifact
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: RobloxSniper-Mac
+        path: dist/RobloxSniper-Mac
+        
+    - name: Upload Linux artifact
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: RobloxSniper-Linux
+        path: dist/RobloxSniper-Linux
+        
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./RobloxSniper-Windows/RobloxSniper-Windows.exe
+        asset_name: RobloxSniper-Windows.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Mac Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./RobloxSniper-Mac/RobloxSniper-Mac
+        asset_name: RobloxSniper-Mac
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./RobloxSniper-Linux/RobloxSniper-Linux
+        asset_name: RobloxSniper-Linux
+        asset_content_type: application/octet-stream

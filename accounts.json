@@ -1,0 +1,28 @@
+{
+      "buyer": {
+        "name": "BuyerAccount",
+        "cookie": ""
+    },
+
+    "scanners": [
+        {
+            "name": "Scanner1",
+            "cookie": ""
+        },
+        {
+            "name": "Scanner2",
+            "cookie": ""
+        },
+        {
+            "name": "Scanner3",
+            "cookie": ""
+        },{
+            "name": "Scanner4",
+            "cookie":""
+        },
+        {
+            "name": "Scanner5",
+            "cookie": ""
+        }
+    ]
+}
