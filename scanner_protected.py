@@ -24,10 +24,19 @@ from queue import Queue
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Version info for auto-update
+APP_DATA_DIR = Path.home() / "Library" / "Application Support" / "RoScanner"
+APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+CONFIG_FILE = APP_DATA_DIR / "config.json"
+LICENSE_FILE = APP_DATA_DIR / "license.dat"
+ACCOUNTS_FILE = Path("accounts.json")
+PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
+STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
+
+# Version info
 VERSION = "1.2.0"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
-LICENSE_SERVER_URL = "RobloxLimScannerMH.pythonanywhere.com"  # Update this after deploying
+LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 INITIAL_KEYS = {
     "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
     "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
@@ -103,8 +112,7 @@ INITIAL_KEYS = {
     "L-5K9Y-8L3R-2PH7-4NX6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
 }
 
-# Keys database file - tracks which keys have been used
-KEYS_DB_FILE = APP_DATA_DIR / "keys_database.json"
+
 
 APP_DATA_DIR = Path.home() / "Library" / "Application Support" / "RoScanner"
 APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -114,6 +122,11 @@ LICENSE_FILE = APP_DATA_DIR / "license.dat"
 ACCOUNTS_FILE = Path("accounts.json")
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
+
+# Version info
+VERSION = "1.2.0"
+UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
+LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 
 # Improved config with faster scanning
 DEFAULT_CONFIG = {
