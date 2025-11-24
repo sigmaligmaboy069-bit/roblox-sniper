@@ -29,7 +29,7 @@ APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIG_FILE = APP_DATA_DIR / "config.json"
 LICENSE_FILE = APP_DATA_DIR / "license.dat"
-ACCOUNTS_FILE = Path("accounts.json")
+ACCOUNTS_FILE = Path(__file__).parent / "accounts.json"
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
