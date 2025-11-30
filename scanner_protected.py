@@ -29,16 +29,16 @@ APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIG_FILE = APP_DATA_DIR / "config.json"
 LICENSE_FILE = APP_DATA_DIR / "license.dat"
-ACCOUNTS_FILE = Path(__file__).parent / "accounts.json"
+ACCOUNTS_FILE = Path("accounts.json")
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
-# Version info
+# Version info for auto-update
 VERSION = "1.2.0"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
 LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 INITIAL_KEYS = {
-    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
+    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None}, - #sold
     "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
     "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
     "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
@@ -113,6 +113,8 @@ INITIAL_KEYS = {
 }
 
 
+# Keys database file - tracks which keys have been used
+KEYS_DB_FILE = APP_DATA_DIR / "keys_database.json"
 
 APP_DATA_DIR = Path.home() / "Library" / "Application Support" / "RoScanner"
 APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -122,11 +124,6 @@ LICENSE_FILE = APP_DATA_DIR / "license.dat"
 ACCOUNTS_FILE = Path("accounts.json")
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
-
-# Version info
-VERSION = "1.2.0"
-UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
-LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 
 # Improved config with faster scanning
 DEFAULT_CONFIG = {
@@ -143,6 +140,15 @@ DEFAULT_CONFIG = {
     "progress_interval": 250,  # Report every 250 items
 }
 
+class Colors:
+    WHITE = ''
+    BRIGHT_RED = ''
+    RED = ''
+    GREEN = ''
+    DARK_GREEN = ''
+    GRAY = ''
+    ENDC = ''
+    BOLD = ''
 
 def get_hwid():
     """Get unique hardware ID for this computer"""
@@ -669,20 +675,69 @@ def main():
         print(f"ERROR: Failed to load accounts.json: {e}")
         sys.exit(1)
     
+    # Load config
     config = ConfigManager.load()
     
-    if not CONFIG_FILE.exists():
-        print("First time setup:\n")
-        discount = input("Minimum discount % to buy [50]: ").strip()
-        config['discount_threshold'] = int(discount) if discount else 50
-        max_price = input("Maximum price per item [1000000]: ").strip()
-        config['max_price'] = int(max_price) if max_price else 1000000
-        min_price = input("Minimum price per item [100]: ").strip()
-        config['min_price'] = int(min_price) if min_price else 100
-        auto_buy = input("Enable auto-buy? (y/n) [y]: ").strip().lower()
-        config['auto_buy_enabled'] = auto_buy != 'n'
+    # Session configuration menu - shown every run
+    print("="*70)
+    print("SESSION CONFIGURATION")
+    print("="*70 + "\n")
+    
+    # Ask for discount threshold
+    print(f"Current discount threshold: {config['discount_threshold']}%")
+    discount_input = input("Enter discount threshold for this session (press Enter to keep current): ").strip()
+    if discount_input:
+        try:
+            config['discount_threshold'] = int(discount_input)
+            print(f"✓ Set to {config['discount_threshold']}%")
+        except ValueError:
+            print("Invalid input, keeping current setting")
+    
+    # Ask for max price
+    print(f"\nCurrent max price: {config['max_price']:,} R$")
+    max_price_input = input("Enter max price for this session (press Enter to keep current): ").strip()
+    if max_price_input:
+        try:
+            config['max_price'] = int(max_price_input)
+            print(f"✓ Set to {config['max_price']:,} R$")
+        except ValueError:
+            print("Invalid input, keeping current setting")
+    
+    # Ask for min price
+    print(f"\nCurrent min price: {config['min_price']:,} R$")
+    min_price_input = input("Enter min price for this session (press Enter to keep current): ").strip()
+    if min_price_input:
+        try:
+            config['min_price'] = int(min_price_input)
+            print(f"✓ Set to {config['min_price']:,} R$")
+        except ValueError:
+            print("Invalid input, keeping current setting")
+    
+    # Ask for auto-buy
+    print(f"\nAuto-buy currently: {'ENABLED' if config['auto_buy_enabled'] else 'DISABLED'}")
+    auto_buy_input = input("Enable auto-buy for this session? (y/n, press Enter to keep current): ").strip().lower()
+    if auto_buy_input:
+        if auto_buy_input == 'y':
+            config['auto_buy_enabled'] = True
+            print("✓ Auto-buy ENABLED")
+        elif auto_buy_input == 'n':
+            config['auto_buy_enabled'] = False
+            print("✓ Auto-buy DISABLED (will only show deals)")
+        else:
+            print("Invalid input, keeping current setting")
+    
+    # Ask to save these settings as defaults
+    print("\n" + "-"*70)
+    save_input = input("Save these settings as defaults for future runs? (y/n): ").strip().lower()
+    if save_input == 'y':
         ConfigManager.save(config)
-        print()
+        print("✓ Settings saved")
+    else:
+        print("Settings will only apply to this session")
+    
+    print("\n" + "="*70)
+    print("STARTING SCANNER WITH CURRENT SESSION SETTINGS")
+    print("="*70 + "\n")
     
     scanner = MarketplaceScanner(config, accounts)
     scanner.run()
