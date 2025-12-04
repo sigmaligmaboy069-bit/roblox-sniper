@@ -8,23 +8,20 @@
    - Save the file
 
 2. **Run the scanner**
-   ```bash
-   python3 scanner_protected.py
-   ```
+ Double tap on the scanner or open it 
+ through terminal.
 
-3. **First time setup**
-   - You'll be asked for discount threshold, price range, etc.
-   - These settings are saved and won't be asked again
+
 
 ## Files
 
-- `scanner_protected.py` - Main scanner (DO NOT EDIT)
+- `` Roblox Scanner - "Your platoform" - Main scanner 
 - `accounts.json` - Your cookies (EDIT THIS)
-- Purchase logs saved to: `~/Library/Application Support/Scanner/purchases.log`
+
 
 ## Support
 
 For issues, contact Magester's Hub
-
+under bugs or in #staff-help
 ---
 © Magester's Hub - All Rights Reserved

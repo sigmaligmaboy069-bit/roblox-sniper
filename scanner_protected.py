@@ -33,12 +33,12 @@ ACCOUNTS_FILE = Path("accounts.json")
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
-# Version info for auto-update
+
 VERSION = "1.2.0"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
 LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 INITIAL_KEYS = {
-    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None}, - #sold
+    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None}, 
     "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
     "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
     "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
