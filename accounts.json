@@ -1,13 +1,13 @@
 {
       "buyer": {
         "name": "BuyerAccount",
-        "cookie": ""
+        "cookie": "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_CAEaAhADIhsKBGR1aWQSEzQ3MzAwNzk2MzQ4MTEwNzc3OTIoAw.vRl9_jwq2b6OFyA9q-3e8p0SMZRdjE8qqrKD4ayHh6l_3eszOcjRhn9LtpvYpMfCr6DF1FNz4R9Z7y7yz60rtD0XoPcEsTWtDvHqj1t3QUr8o0yr8KkZ2txkTVcJQeoBHXgkAbVOGu2_wkXwR7TTQFE7QbBZu-htPycAovA5k3mvp5Hz7rEdV4DsU98b6g2JAnSXoSVHMC7YuXYhY-HWQMBrc1vnjDmaja5UW7p26--5EiOUxqiun4mb-4KFWo0MeIZ1ByVzDoW3-NQD6Wu9lJ0l2wpngeC3K0SaqYDfTfT7IG9iIjlAKhPCojUKzN6YpXop8wDm1tYMXOPZgZtrmDa7eg2gQtPEDUQlyDvEe3Qwyt--HRDZuAoGP16txgZc1RoFOJS-ASLNqJuXdim23_E_yUiDV-X-v1KrAhRSbhLrkBxV15h5fDQH9os0H6sFCnV6_w"
     },
 
     "scanners": [
         {
             "name": "Scanner1",
-            "cookie": "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items..."
+            "cookie": "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_CAEaAhADIhsKBGR1aWQSEzQ3MzAwNzk2MzQ4MTEwNzc3OTIoAw.vRl9_jwq2b6OFyA9q-3e8p0SMZRdjE8qqrKD4ayHh6l_3eszOcjRhn9LtpvYpMfCr6DF1FNz4R9Z7y7yz60rtD0XoPcEsTWtDvHqj1t3QUr8o0yr8KkZ2txkTVcJQeoBHXgkAbVOGu2_wkXwR7TTQFE7QbBZu-htPycAovA5k3mvp5Hz7rEdV4DsU98b6g2JAnSXoSVHMC7YuXYhY-HWQMBrc1vnjDmaja5UW7p26--5EiOUxqiun4mb-4KFWo0MeIZ1ByVzDoW3-NQD6Wu9lJ0l2wpngeC3K0SaqYDfTfT7IG9iIjlAKhPCojUKzN6YpXop8wDm1tYMXOPZgZtrmDa7eg2gQtPEDUQlyDvEe3Qwyt--HRDZuAoGP16txgZc1RoFOJS-ASLNqJuXdim23_E_yUiDV-X-v1KrAhRSbhLrkBxV15h5fDQH9os0H6sFCnV6_w"
         },
         {
             "name": "Scanner2",
