@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """
+RobloxSniper - Licensed Version with Cherry Picker Mode
+- Full Market Scan: Scans entire marketplace (3-5M items/day)
+- Cherry Picker: Monitor specific items by asset ID
+- License key validation
+- HWID locking
+- Auto-update system
 
+From Magester's Market
 """
 
 import json
@@ -128,10 +135,10 @@ DEFAULT_CONFIG = {
     "discount_threshold": 50,
     "max_price": 1000000,
     "min_price": 100,
-    "request_timeout": 3,
+    "request_timeout": 5,  # Increased timeout to avoid failed requests
     "auto_buy_enabled": True,
     "max_pages_per_scan": 250,
-    "delay_between_pages": 0.1,
+    "delay_between_pages": 0.05,  # Reduced from 0.1 to 0.05
     "purchase_delay": 0.15,
     "max_purchase_attempts": 3,
     "progress_interval": 250,
@@ -199,13 +206,15 @@ class LicenseManager:
                 if data.get('valid'):
                     return True, data.get('type', 'Unknown'), data.get('message', '')
                 else:
+      
                     return False, None, data.get('message', 'Invalid key')
-       
             else:
                 return False, None, "Server error"
        
-        except Exception as e:
+
+
        
+        except Exception as e:
             return False, None, f"Cannot reach license server: {str(e)}"
     
     def check_license(self):
@@ -414,24 +423,47 @@ class MarketplaceScanner:
         try:
             url = f"https://catalog.roblox.com/v1/catalog/items/details"
             payload = {"items": [{"itemType": "Asset", "id": asset_id}]}
-            response = scanner_data['session'].post(url, json=payload, timeout=3, verify=False)
+            
+            # Add headers to ensure proper request
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            response = scanner_data['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
             
             if response.status_code == 200:
                 data = response.json()
                 items = data.get('data', [])
-                if items:
+                if items and len(items) > 0:
                     item = items[0]
                     # Check if item is limited
-                    if item.get('itemRestrictions', []):
-                        if 'Limited' in item.get('itemRestrictions', []) or 'LimitedUnique' in item.get('itemRestrictions', []):
-                            return item
+                    item_restrictions = item.get('itemRestrictions', [])
+                    if item_restrictions and ('Limited' in item_restrictions or 'LimitedUnique' in item_restrictions):
+                        return item
                     # Item exists but not limited
                     return {'error': 'not_limited', 'name': item.get('name', 'Unknown')}
-                # Item doesn't exist
+                # Empty response means item doesn't exist
                 return {'error': 'not_exist'}
-        except:
-            pass
-        return {'error': 'not_exist'}
+            elif response.status_code == 429:
+                # Rate limited, wait and retry once
+                time.sleep(2)
+                response = scanner_data['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
+                if response.status_code == 200:
+                    data = response.json()
+                    items = data.get('data', [])
+                    if items and len(items) > 0:
+                        item = items[0]
+                        item_restrictions = item.get('itemRestrictions', [])
+                        if item_restrictions and ('Limited' in item_restrictions or 'LimitedUnique' in item_restrictions):
+                            return item
+                        return {'error': 'not_limited', 'name': item.get('name', 'Unknown')}
+                    return {'error': 'not_exist'}
+            # API error
+            return {'error': 'not_exist'}
+        except Exception as e:
+            print(f"  ⚠️ Error checking item: {str(e)}")
+            return {'error': 'not_exist'}
     
     def get_lowest_reseller(self, asset_id):
         try:
@@ -802,6 +834,7 @@ def main():
                 asset_id = int(asset_input)
                 # Validate the item
                 print(f"  Checking item {asset_id}...")
+                time.sleep(0.5)  # Small delay to avoid rate limiting
                 item_details = temp_marketplace.get_item_details(temp_scanner_data, asset_id)
                 
                 if item_details:
@@ -809,7 +842,7 @@ def main():
                         if item_details['error'] == 'not_limited':
                             print(f"  ❌ Item not limited: {item_details.get('name', 'Unknown')}")
                         else:
-                            print(f"  ❌ Item does not exist")
+                            print(f"  ❌ Item does not exist or API error")
                     else:
                         item_name = item_details.get('name', 'Unknown')
                         print(f"  ✓ Added: {item_name} (ID: {asset_id})")
