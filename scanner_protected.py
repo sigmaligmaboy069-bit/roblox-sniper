@@ -156,7 +156,6 @@ def get_hwid():
     processor = platform.processor()
     node = platform.node()
     
-
     hwid_string = f"{system}-{machine}-{processor}-{node}"
     hwid_hash = hashlib.sha256(hwid_string.encode()).hexdigest()
     return hwid_hash[:32]
@@ -204,10 +203,11 @@ class LicenseManager:
                 else:
                     return False, None, data.get('message', 'Invalid key')
             else:
+     
                 return False, None, "Server error"
-      
+       
         except Exception as e:
-         
+       
             return False, None, f"Cannot reach license server: {str(e)}"
     
     def check_license(self):
@@ -217,11 +217,9 @@ class LicenseManager:
         if not saved:
             return False, "No license found"
         
-
         if saved.get('hwid') != self.hwid:
             return False, "License locked to different computer"
         
-
         key = saved['key']
         valid, license_type, message = self.validate_license_online(key)
         
@@ -407,6 +405,22 @@ class MarketplaceScanner:
             pass
         return None
     
+    def get_item_details(self, scanner_data, asset_id):
+        """Get item name and details from asset ID"""
+        try:
+            url = f"https://catalog.roblox.com/v1/catalog/items/details"
+            payload = {"items": [{"itemType": "Asset", "id": asset_id}]}
+            response = scanner_data['session'].post(url, json=payload, timeout=3, verify=False)
+            
+            if response.status_code == 200:
+                data = response.json()
+                items = data.get('data', [])
+                if items:
+                    return items[0]
+        except:
+            pass
+        return None
+    
     def get_lowest_reseller(self, asset_id):
         try:
             url = f"https://economy.roblox.com/v1/assets/{asset_id}/resellers"
@@ -425,10 +439,8 @@ class MarketplaceScanner:
             payload = {"expectedCurrency": 1, "expectedPrice": price, "expectedSellerId": seller_id}
             headers = {"Content-Type": "application/json", "X-CSRF-TOKEN": self.buyer_session['csrf']}
             
-
             response = self.buyer_session['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
             
-
             if response.status_code == 403 and 'x-csrf-token' in response.headers:
                 self.buyer_session['csrf'] = response.headers['x-csrf-token']
                 self.buyer_session['session'].headers['X-CSRF-TOKEN'] = self.buyer_session['csrf']
@@ -439,14 +451,12 @@ class MarketplaceScanner:
             if response.status_code == 200:
                 return True, "Success"
             
-
             if response.status_code in [403, 429]:
                 time.sleep(0.3)
                 response = self.buyer_session['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
                 if response.status_code == 200:
                     return True, "Success after confirmation"
             
-
             try:
                 error_data = response.json()
                 error_msg = error_data.get('message', '') or error_data.get('error', '')
@@ -506,6 +516,8 @@ class MarketplaceScanner:
     def process_item(self, scanner_data, item):
         try:
             asset_id = item.get('id')
+            name = item.get('name', 'Unknown Item')
+            
             with self.lock:
                 if asset_id in self.purchased_items:
                     return
@@ -542,9 +554,16 @@ class MarketplaceScanner:
                         if items_counter['total'] % 10 == 0:
                             self.log(f"Progress: {items_counter['total']} cherry pick checks")
                     
-                    item = {'id': asset_id, 'name': f'Item {asset_id}', 'itemType': 'Asset'}
-                    self.process_item(scanner_data, item)
+                    # Get item details for name
+                    item_details = self.get_item_details(scanner_data, asset_id)
+                    if item_details:
+                        item = item_details
+                    else:
+                        item = {'id': asset_id, 'name': f'Item {asset_id}', 'itemType': 'Asset'}
                     
+                  
+                    self.process_item(scanner_data, item)
+                
                     time.sleep(0.2)
                 except:
                     pass
@@ -555,6 +574,41 @@ class MarketplaceScanner:
         else:
             # Full market mode - original logic
             cursor = None
+            local_items = 0
+            
+            for page in range(self.config['max_pages_per_scan']):
+                items, next_cursor = self.scan_marketplace_page(scanner_data, cursor)
+                if not items:
+                    break
+                
+                local_items += len(items)
+                with self.lock:
+                    items_counter['total'] += len(items)
+                    if items_counter['total'] % self.config['progress_interval'] == 0:
+                        self.log(f"Progress: {items_counter['total']} items scanned")
+                
+                for item in items:
+                    if item.get('itemType') != 'Bundle':
+                        self.process_item(scanner_data, item)
+                
+                if not next_cursor:
+                    break
+                cursor = next_cursor
+                time.sleep(self.config['delay_between_pages'])
+            
+            with self.lock:
+                self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
+                    
+                    time.sleep(0.2)
+                except:
+                    pass
+            
+            with self.lock:
+                self.log(f"{scanner_data['account_name']}: Checked {local_items} cherry pick items")
+        
+        else:
+            cursor = None
+        
             local_items = 0
             
             for page in range(self.config['max_pages_per_scan']):
@@ -597,8 +651,7 @@ class MarketplaceScanner:
         if not self.cherry_pick_mode:
             self.log(f"  Pages per Scanner: {self.config['max_pages_per_scan']}")
         self.log(f"  Auto-Buy: {'ENABLED' if self.config['auto_buy_enabled'] else 'DISABLED'}")
-
-
+        
         print()
         self.log("Starting marketplace scan...")
         self.log("Press Ctrl+C to stop gracefully")
@@ -759,7 +812,6 @@ def main():
     print("SESSION CONFIGURATION")
     print("="*70 + "\n")
     
-
     print(f"Current discount threshold: {config['discount_threshold']}%")
     discount_input = input("Enter discount threshold for this session (press Enter to keep current): ").strip()
     if discount_input:
@@ -769,7 +821,6 @@ def main():
         except ValueError:
             print("Invalid input, keeping current setting")
     
-
     print(f"\nCurrent max price: {config['max_price']:,} R$")
     max_price_input = input("Enter max price for this session (press Enter to keep current): ").strip()
     if max_price_input:
@@ -779,7 +830,6 @@ def main():
         except ValueError:
             print("Invalid input, keeping current setting")
     
-
     print(f"\nCurrent min price: {config['min_price']:,} R$")
     min_price_input = input("Enter min price for this session (press Enter to keep current): ").strip()
     if min_price_input:
@@ -788,8 +838,7 @@ def main():
             print(f"Set to {config['min_price']:,} R$")
         except ValueError:
             print("Invalid input, keeping current setting")
-
-
+    
     print(f"\nAuto-buy currently: {'ENABLED' if config['auto_buy_enabled'] else 'DISABLED'}")
     auto_buy_input = input("Enable auto-buy for this session? (y/n, press Enter to keep current): ").strip().lower()
     if auto_buy_input:
@@ -801,8 +850,7 @@ def main():
             print("Auto-buy DISABLED (will only show deals)")
         else:
             print("Invalid input, keeping current setting")
-
-
+    
     print("\n" + "-"*70)
     save_input = input("Save these settings as defaults for future runs? (y/n): ").strip().lower()
     if save_input == 'y':
