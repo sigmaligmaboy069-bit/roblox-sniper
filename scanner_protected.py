@@ -205,15 +205,13 @@ class LicenseManager:
                 data = response.json()
                 if data.get('valid'):
                     return True, data.get('type', 'Unknown'), data.get('message', '')
+         
                 else:
-      
                     return False, None, data.get('message', 'Invalid key')
             else:
                 return False, None, "Server error"
        
 
-
-       
         except Exception as e:
             return False, None, f"Cannot reach license server: {str(e)}"
     
@@ -437,14 +435,41 @@ class MarketplaceScanner:
                 items = data.get('data', [])
                 if items and len(items) > 0:
                     item = items[0]
-                    # Check if item is limited
+                    item_name = item.get('name', 'Unknown')
+                    
+                    # Debug: print the full item data to see structure
+                    # print(f"DEBUG: {json.dumps(item, indent=2)}")
+                    
+                    # Check multiple ways if item is limited
+                    is_limited = False
+                    
+                    # Method 1: Check itemRestrictions
                     item_restrictions = item.get('itemRestrictions', [])
-                    if item_restrictions and ('Limited' in item_restrictions or 'LimitedUnique' in item_restrictions):
+                    if 'Limited' in item_restrictions or 'LimitedUnique' in item_restrictions:
+                        is_limited = True
+                    
+                    # Method 2: Check if lowestPrice exists (only limiteds have resale)
+                    if item.get('lowestPrice') is not None:
+                        is_limited = True
+                    
+                    # Method 3: Check priceStatus
+                    price_status = item.get('priceStatus', '')
+                    if price_status in ['Limited', 'LimitedUnique']:
+                        is_limited = True
+                    
+                    # Method 4: Check if it has unitsAvailableForConsumption (U limiteds)
+                    if item.get('unitsAvailableForConsumption') is not None:
+                        is_limited = True
+                    
+                    if is_limited:
                         return item
-                    # Item exists but not limited
-                    return {'error': 'not_limited', 'name': item.get('name', 'Unknown')}
+                    else:
+                        # Item exists but not limited
+                        return {'error': 'not_limited', 'name': item_name}
+                
                 # Empty response means item doesn't exist
                 return {'error': 'not_exist'}
+                
             elif response.status_code == 429:
                 # Rate limited, wait and retry once
                 time.sleep(2)
@@ -454,16 +479,34 @@ class MarketplaceScanner:
                     items = data.get('data', [])
                     if items and len(items) > 0:
                         item = items[0]
+                        item_name = item.get('name', 'Unknown')
+                        
+                        # Same checks as above
+                        is_limited = False
                         item_restrictions = item.get('itemRestrictions', [])
-                        if item_restrictions and ('Limited' in item_restrictions or 'LimitedUnique' in item_restrictions):
+                        if 'Limited' in item_restrictions or 'LimitedUnique' in item_restrictions:
+                            is_limited = True
+                        if item.get('lowestPrice') is not None:
+                            is_limited = True
+                        price_status = item.get('priceStatus', '')
+                        if price_status in ['Limited', 'LimitedUnique']:
+                            is_limited = True
+                        if item.get('unitsAvailableForConsumption') is not None:
+                            is_limited = True
+                        
+                        if is_limited:
                             return item
-                        return {'error': 'not_limited', 'name': item.get('name', 'Unknown')}
+                        else:
+                            return {'error': 'not_limited', 'name': item_name}
                     return {'error': 'not_exist'}
+            
             # API error
-            return {'error': 'not_exist'}
+            print(f"  ⚠️ API returned status code: {response.status_code}")
+            return {'error': 'api_error', 'status': response.status_code}
+            
         except Exception as e:
-            print(f"  ⚠️ Error checking item: {str(e)}")
-            return {'error': 'not_exist'}
+            print(f"  ⚠️ Exception: {str(e)}")
+            return {'error': 'exception', 'message': str(e)}
     
     def get_lowest_reseller(self, asset_id):
         try:
@@ -841,14 +884,18 @@ def main():
                     if 'error' in item_details:
                         if item_details['error'] == 'not_limited':
                             print(f"  ❌ Item not limited: {item_details.get('name', 'Unknown')}")
+                        elif item_details['error'] == 'api_error':
+                            print(f"  ❌ API Error - Status: {item_details.get('status', 'unknown')}")
+                        elif item_details['error'] == 'exception':
+                            print(f"  ❌ Exception: {item_details.get('message', 'unknown')}")
                         else:
-                            print(f"  ❌ Item does not exist or API error")
+                            print(f"  ❌ Item does not exist")
                     else:
                         item_name = item_details.get('name', 'Unknown')
                         print(f"  ✓ Added: {item_name} (ID: {asset_id})")
                         cherry_pick_items.add(asset_id)
                 else:
-                    print(f"  ❌ Could not verify item - skipping")
+                    print(f"  ❌ Could not verify item - no response")
             else:
                 print("  Invalid - must be a number")
         
