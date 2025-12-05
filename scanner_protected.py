@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-RobloxSniper - Licensed Version with Improvements
-- Faster scanning (3-5M items/day)
+RobloxSniper - Licensed Version with Cherry Picker Mode
+- Full Market Scan: Scans entire marketplace (3-5M items/day)
+- Cherry Picker: Monitor specific items by asset ID
 - License key validation
 - HWID locking
 - Auto-update system
@@ -33,61 +34,64 @@ ACCOUNTS_FILE = Path("accounts.json")
 PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
-
-VERSION = "1.2.0"
+# Version info for auto-update
+VERSION = "1.3.0"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
 LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
+
+# Valid license keys embedded in program
 INITIAL_KEYS = {
-    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "used": False, "hwid": None, "activated_date": None}, 
-    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2W7K-4N8X-9PL5-6YH3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6R3Y-8K2H-4NX7-9PL5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9L4X-7P2K-5NH8-3YR6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4K8N-2Y7P-6XL9-5RH3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7X2P-9K4L-3NH8-6YR5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5N9L-8R3K-2YH7-4PX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3P6K-7L2Y-9RH4-8NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8H4Y-2N7K-5XL9-3RP6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2R9P-6K3Y-8LH4-7NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6Y3L-9H2K-4RP8-5NX7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9K7X-4P2L-8NH5-3YR6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4L8R-2K7N-6YP9-5HX3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7P2Y-9L4K-3RH8-6NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5X9K-8N3P-2LH7-4YR6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3N6P-7Y2K-9LH4-8RX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8R4L-2P7Y-5KH9-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2K9Y-6L3P-8RH4-7NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6P3K-9Y2L-4NH8-5RX7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9L7R-4K2P-8YH5-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4Y8P-2L7K-6RH9-5NX3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7K2R-9P4Y-3LH8-6NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5R9L-8K3Y-2PH7-4NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3P6Y-7R2L-9KH4-8NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8L4K-2R7P-5YH9-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2Y9K-6P3R-8LH4-7NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6K3P-9L2Y-4RH8-5NX7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9R7L-4Y2P-8KH5-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4P8L-2Y7R-6KH9-5NX3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7Y2K-9R4P-3LH8-6NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5L9R-8P3K-2YH7-4NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3K6R-7P2Y-9LH4-8NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8Y4P-2L7R-5KH9-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2R9L-6Y3P-8KH4-7NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6P3Y-9K2R-4LH8-5NX7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9K7P-4R2L-8YH5-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4L8Y-2K7P-6RH9-5NX3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7R2P-9K4Y-3LH8-6NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5Y9P-8R3L-2KH7-4NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-3P6L-7Y2R-9KH4-8NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-8K4R-2P7Y-5LH9-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-2Y9R-6P3K-8LH4-7NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-6R3L-9P2Y-4KH8-5NX7": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-9P7K-4Y2R-8LH5-3NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-4R8P-2Y7K-6LH9-5NX3": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-7L2Y-9P4R-3KH8-6NX5": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
-    "M-5K9Y-8L3R-2PH7-4NX6": {"type": "monthly", "used": False, "hwid": None, "activated_date": None},
+    # Monthly Keys (30 days)
+    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2W7K-4N8X-9PL5-6YH3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6R3Y-8K2H-4NX7-9PL5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9L4X-7P2K-5NH8-3YR6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4K8N-2Y7P-6XL9-5RH3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7X2P-9K4L-3NH8-6YR5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5N9L-8R3K-2YH7-4PX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3P6K-7L2Y-9RH4-8NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8H4Y-2N7K-5XL9-3RP6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2R9P-6K3Y-8LH4-7NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6Y3L-9H2K-4RP8-5NX7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9K7X-4P2L-8NH5-3YR6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4L8R-2K7N-6YP9-5HX3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7P2Y-9L4K-3RH8-6NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5X9K-8N3P-2LH7-4YR6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3N6P-7Y2K-9LH4-8RX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8R4L-2P7Y-5KH9-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2K9Y-6L3P-8RH4-7NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6P3K-9Y2L-4NH8-5RX7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9L7R-4K2P-8YH5-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4Y8P-2L7K-6RH9-5NX3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7K2R-9P4Y-3LH8-6NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5R9L-8K3Y-2PH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3P6Y-7R2L-9KH4-8NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8L4K-2R7P-5YH9-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2Y9K-6P3R-8LH4-7NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6K3P-9L2Y-4RH8-5NX7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9R7L-4Y2P-8KH5-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4P8L-2Y7R-6KH9-5NX3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7Y2K-9R4P-3LH8-6NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5L9R-8P3K-2YH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3K6R-7P2Y-9LH4-8NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8Y4P-2L7R-5KH9-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2R9L-6Y3P-8KH4-7NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6P3Y-9K2R-4LH8-5NX7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9K7P-4R2L-8YH5-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4L8Y-2K7P-6RH9-5NX3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7R2P-9K4Y-3LH8-6NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5Y9P-8R3L-2KH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3P6L-7Y2R-9KH4-8NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-8K4R-2P7Y-5LH9-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-2Y9R-6P3K-8LH4-7NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-6R3L-9P2Y-4KH8-5NX7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-9P7K-4Y2R-8LH5-3NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-4R8P-2Y7K-6LH9-5NX3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7L2Y-9P4R-3KH8-6NX5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5K9Y-8L3R-2PH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     
     # Lifetime Keys (Permanent)
     "L-9X4M-7K2P-5NH8-3YR6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
@@ -113,11 +117,6 @@ INITIAL_KEYS = {
 }
 
 
-# Keys database file - tracks which keys have been used
-KEYS_DB_FILE = APP_DATA_DIR / "keys_database.json"
-
-APP_DATA_DIR = Path.home() / "Library" / "Application Support" / "RoScanner"
-APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIG_FILE = APP_DATA_DIR / "config.json"
 LICENSE_FILE = APP_DATA_DIR / "license.dat"
@@ -127,17 +126,17 @@ STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
 # Improved config with faster scanning
 DEFAULT_CONFIG = {
-    "scan_interval": 0.05,  # Faster cycles
+    "scan_interval": 0.05,
     "discount_threshold": 50,
     "max_price": 1000000,
     "min_price": 100,
-    "request_timeout": 3,  # Faster timeout
+    "request_timeout": 3,
     "auto_buy_enabled": True,
-    "max_pages_per_scan": 250,  # More pages (7,500 items per scanner)
-    "delay_between_pages": 0.1,  # Faster page switching
+    "max_pages_per_scan": 250,
+    "delay_between_pages": 0.1,
     "purchase_delay": 0.15,
     "max_purchase_attempts": 3,
-    "progress_interval": 250,  # Report every 250 items
+    "progress_interval": 250,
 }
 
 class Colors:
@@ -157,10 +156,11 @@ def get_hwid():
     processor = platform.processor()
     node = platform.node()
     
-    # Create unique identifier
+
     hwid_string = f"{system}-{machine}-{processor}-{node}"
     hwid_hash = hashlib.sha256(hwid_string.encode()).hexdigest()
     return hwid_hash[:32]
+
 
 class LicenseManager:
     def __init__(self):
@@ -205,8 +205,9 @@ class LicenseManager:
                     return False, None, data.get('message', 'Invalid key')
             else:
                 return False, None, "Server error"
+      
         except Exception as e:
-            # If server is down, try offline validation
+         
             return False, None, f"Cannot reach license server: {str(e)}"
     
     def check_license(self):
@@ -216,11 +217,11 @@ class LicenseManager:
         if not saved:
             return False, "No license found"
         
-        # Check HWID match
+
         if saved.get('hwid') != self.hwid:
             return False, "License locked to different computer"
         
-        # Validate with server
+
         key = saved['key']
         valid, license_type, message = self.validate_license_online(key)
         
@@ -228,6 +229,7 @@ class LicenseManager:
             return False, message
         
         return True, license_type
+
 
 def check_for_updates():
     """Check for new version"""
@@ -244,6 +246,7 @@ def check_for_updates():
     except:
         pass
     return False
+
 
 class ConfigManager:
     @staticmethod
@@ -265,8 +268,9 @@ class ConfigManager:
         with open(CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=2)
 
+
 class MarketplaceScanner:
-    def __init__(self, config, accounts):
+    def __init__(self, config, accounts, cherry_pick_mode=False, cherry_pick_items=None):
         self.config = config
         self.accounts = accounts
         self.buyer_session = None
@@ -277,7 +281,9 @@ class MarketplaceScanner:
         self.start_time = time.time()
         self.lock = threading.Lock()
         self.deal_queue = Queue()
-        
+        self.cherry_pick_mode = cherry_pick_mode
+        self.cherry_pick_items = cherry_pick_items or set()
+    
     def log(self, message, color=''):
         timestamp = datetime.now().strftime('%H:%M:%S')
         print(f"[{timestamp}] {message}")
@@ -342,7 +348,7 @@ class MarketplaceScanner:
     def setup_sessions(self):
         print("\n" + "="*70)
         print("Magester's Hub - RobloxSniper v" + VERSION)
-        print("Licensed Version - Faster Scanning Edition")
+        print("Licensed Version - " + ("Cherry Picker Mode" if self.cherry_pick_mode else "Full Market Mode"))
         print("="*70 + "\n")
         
         self.log("Setting up BUYER account...")
@@ -380,7 +386,7 @@ class MarketplaceScanner:
             response = scanner_data['session'].get(url, params=params, timeout=self.config['request_timeout'], verify=False)
             
             if response.status_code == 429:
-                time.sleep(15)  # Shorter wait for rate limits
+                time.sleep(15)
                 return [], None
             
             if response.status_code == 200:
@@ -419,10 +425,10 @@ class MarketplaceScanner:
             payload = {"expectedCurrency": 1, "expectedPrice": price, "expectedSellerId": seller_id}
             headers = {"Content-Type": "application/json", "X-CSRF-TOKEN": self.buyer_session['csrf']}
             
-            # First purchase attempt
+
             response = self.buyer_session['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
             
-            # Handle CSRF token refresh
+
             if response.status_code == 403 and 'x-csrf-token' in response.headers:
                 self.buyer_session['csrf'] = response.headers['x-csrf-token']
                 self.buyer_session['session'].headers['X-CSRF-TOKEN'] = self.buyer_session['csrf']
@@ -433,14 +439,14 @@ class MarketplaceScanner:
             if response.status_code == 200:
                 return True, "Success"
             
-            # Second confirmation attempt
+
             if response.status_code in [403, 429]:
                 time.sleep(0.3)
                 response = self.buyer_session['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
                 if response.status_code == 200:
                     return True, "Success after confirmation"
             
-            # Parse error
+
             try:
                 error_data = response.json()
                 error_msg = error_data.get('message', '') or error_data.get('error', '')
@@ -525,31 +531,54 @@ class MarketplaceScanner:
             pass
     
     def scan_with_scanner(self, scanner_data, items_counter):
-        cursor = None
-        local_items = 0
-        
-        for page in range(self.config['max_pages_per_scan']):
-            items, next_cursor = self.scan_marketplace_page(scanner_data, cursor)
-            if not items:
-                break
-            
-            local_items += len(items)
-            with self.lock:
-                items_counter['total'] += len(items)
-                if items_counter['total'] % self.config['progress_interval'] == 0:
-                    self.log(f"Progress: {items_counter['total']} items scanned")
-            
-            for item in items:
-                if item.get('itemType') != 'Bundle':
+        if self.cherry_pick_mode:
+            # Cherry picker mode - check specific items only
+            local_items = 0
+            for asset_id in self.cherry_pick_items:
+                try:
+                    with self.lock:
+                        items_counter['total'] += 1
+                        local_items += 1
+                        if items_counter['total'] % 10 == 0:
+                            self.log(f"Progress: {items_counter['total']} cherry pick checks")
+                    
+                    item = {'id': asset_id, 'name': f'Item {asset_id}', 'itemType': 'Asset'}
                     self.process_item(scanner_data, item)
+                    
+                    time.sleep(0.2)
+                except:
+                    pass
             
-            if not next_cursor:
-                break
-            cursor = next_cursor
-            time.sleep(self.config['delay_between_pages'])
+            with self.lock:
+                self.log(f"{scanner_data['account_name']}: Checked {local_items} cherry pick items")
         
-        with self.lock:
-            self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
+        else:
+            # Full market mode - original logic
+            cursor = None
+            local_items = 0
+            
+            for page in range(self.config['max_pages_per_scan']):
+                items, next_cursor = self.scan_marketplace_page(scanner_data, cursor)
+                if not items:
+                    break
+                
+                local_items += len(items)
+                with self.lock:
+                    items_counter['total'] += len(items)
+                    if items_counter['total'] % self.config['progress_interval'] == 0:
+                        self.log(f"Progress: {items_counter['total']} items scanned")
+                
+                for item in items:
+                    if item.get('itemType') != 'Bundle':
+                        self.process_item(scanner_data, item)
+                
+                if not next_cursor:
+                    break
+                cursor = next_cursor
+                time.sleep(self.config['delay_between_pages'])
+            
+            with self.lock:
+                self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
     
     def run(self):
         if not self.setup_sessions():
@@ -560,14 +589,18 @@ class MarketplaceScanner:
         self.log(f"Configuration:")
         self.log(f"  Buyer: {self.buyer_session['username']}")
         self.log(f"  Scanners: {len(self.scanner_sessions)} accounts")
+        self.log(f"  Mode: {'Cherry Picker' if self.cherry_pick_mode else 'Full Market'}")
+        if self.cherry_pick_mode:
+            self.log(f"  Monitoring: {len(self.cherry_pick_items)} specific items")
         self.log(f"  Discount Threshold: {self.config['discount_threshold']}%")
         self.log(f"  Price Range: {self.config['min_price']:,}R$ - {self.config['max_price']:,}R$")
-        self.log(f"  Pages per Scanner: {self.config['max_pages_per_scan']}")
+        if not self.cherry_pick_mode:
+            self.log(f"  Pages per Scanner: {self.config['max_pages_per_scan']}")
         self.log(f"  Auto-Buy: {'ENABLED' if self.config['auto_buy_enabled'] else 'DISABLED'}")
-        self.log(f"  Estimated: 3-5M items/day")
-        
+
+
         print()
-        self.log("Starting parallel marketplace scan...")
+        self.log("Starting marketplace scan...")
         self.log("Press Ctrl+C to stop gracefully")
         print()
         
@@ -675,71 +708,114 @@ def main():
         print(f"ERROR: Failed to load accounts.json: {e}")
         sys.exit(1)
     
+    # Scanning mode selection
+    print("="*70)
+    print("SCANNING MODE SELECTION")
+    print("="*70 + "\n")
+    print("Choose scanning mode:")
+    print("  1. Full Market Scan - Scans entire marketplace (2M+ items/day)")
+    print("  2. Cherry Picker - Only scans specific items you choose")
+    print()
+    
+    mode_choice = input("Enter mode (1 or 2): ").strip()
+    
+    cherry_pick_mode = False
+    cherry_pick_items = set()
+    
+    if mode_choice == "2":
+        cherry_pick_mode = True
+        print("\nCherry Picker Mode Selected")
+        print("Enter asset IDs to monitor (one per line)")
+        print("Type 'done' when finished")
+        print("Example: 1365767, 20573078, etc.")
+        print()
+        
+        while True:
+            asset_input = input("Asset ID (or 'done'): ").strip()
+            if asset_input.lower() == 'done':
+                break
+            if asset_input.isdigit():
+                cherry_pick_items.add(int(asset_input))
+                print(f"  Added: {asset_input}")
+            else:
+                print("  Invalid - must be a number")
+        
+        if not cherry_pick_items:
+            print("\nNo items added! Switching to Full Market mode")
+            cherry_pick_mode = False
+        else:
+            print(f"\nMonitoring {len(cherry_pick_items)} specific items")
+    else:
+        print("\nFull Market Scan Mode Selected")
+        print("Will scan entire marketplace")
+    
+    print()
+    
     # Load config
     config = ConfigManager.load()
     
-    # Session configuration menu - shown every run
+    # Session configuration menu
     print("="*70)
     print("SESSION CONFIGURATION")
     print("="*70 + "\n")
     
-    # Ask for discount threshold
+
     print(f"Current discount threshold: {config['discount_threshold']}%")
     discount_input = input("Enter discount threshold for this session (press Enter to keep current): ").strip()
     if discount_input:
         try:
             config['discount_threshold'] = int(discount_input)
-            print(f"✓ Set to {config['discount_threshold']}%")
+            print(f"Set to {config['discount_threshold']}%")
         except ValueError:
             print("Invalid input, keeping current setting")
     
-    # Ask for max price
+
     print(f"\nCurrent max price: {config['max_price']:,} R$")
     max_price_input = input("Enter max price for this session (press Enter to keep current): ").strip()
     if max_price_input:
         try:
             config['max_price'] = int(max_price_input)
-            print(f"✓ Set to {config['max_price']:,} R$")
+            print(f"Set to {config['max_price']:,} R$")
         except ValueError:
             print("Invalid input, keeping current setting")
     
-    # Ask for min price
+
     print(f"\nCurrent min price: {config['min_price']:,} R$")
     min_price_input = input("Enter min price for this session (press Enter to keep current): ").strip()
     if min_price_input:
         try:
             config['min_price'] = int(min_price_input)
-            print(f"✓ Set to {config['min_price']:,} R$")
+            print(f"Set to {config['min_price']:,} R$")
         except ValueError:
             print("Invalid input, keeping current setting")
-    
-    # Ask for auto-buy
+
+
     print(f"\nAuto-buy currently: {'ENABLED' if config['auto_buy_enabled'] else 'DISABLED'}")
     auto_buy_input = input("Enable auto-buy for this session? (y/n, press Enter to keep current): ").strip().lower()
     if auto_buy_input:
         if auto_buy_input == 'y':
             config['auto_buy_enabled'] = True
-            print("✓ Auto-buy ENABLED")
+            print("Auto-buy ENABLED")
         elif auto_buy_input == 'n':
             config['auto_buy_enabled'] = False
-            print("✓ Auto-buy DISABLED (will only show deals)")
+            print("Auto-buy DISABLED (will only show deals)")
         else:
             print("Invalid input, keeping current setting")
-    
-    # Ask to save these settings as defaults
+
+
     print("\n" + "-"*70)
     save_input = input("Save these settings as defaults for future runs? (y/n): ").strip().lower()
     if save_input == 'y':
         ConfigManager.save(config)
-        print("✓ Settings saved")
+        print("Settings saved")
     else:
         print("Settings will only apply to this session")
     
     print("\n" + "="*70)
-    print("STARTING SCANNER WITH CURRENT SESSION SETTINGS")
+    print("STARTING SCANNER")
     print("="*70 + "\n")
     
-    scanner = MarketplaceScanner(config, accounts)
+    scanner = MarketplaceScanner(config, accounts, cherry_pick_mode, cherry_pick_items)
     scanner.run()
 
 if __name__ == "__main__":
