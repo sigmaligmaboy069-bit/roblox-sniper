@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-RobloxSniper - Licensed Version with Cherry Picker Mode
-- Full Market Scan: Scans entire marketplace (3-5M items/day)
-- Cherry Picker: Monitor specific items by asset ID
-- License key validation
-- HWID locking
-- Auto-update system
+
 """
 
 import json
@@ -35,9 +30,12 @@ PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
 # Version info for auto-update
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
 LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
+
+# Cherry Picker Access Code
+CHERRY_PICKER_CODE = "865UB1Magester1BU568"
 
 # Valid license keys embedded in program
 INITIAL_KEYS = {
@@ -202,8 +200,8 @@ class LicenseManager:
                     return True, data.get('type', 'Unknown'), data.get('message', '')
                 else:
                     return False, None, data.get('message', 'Invalid key')
+       
             else:
-     
                 return False, None, "Server error"
        
         except Exception as e:
@@ -239,7 +237,7 @@ def check_for_updates():
             if latest_version and latest_version != VERSION:
                 print(f"\nNew version available: {latest_version}")
                 print(f"Current version: {VERSION}")
-                print(f"Download: {data.get('download_url')}\n")
+                print(f"Download from: Magester's Market\n")
                 return True
     except:
         pass
@@ -345,7 +343,7 @@ class MarketplaceScanner:
     
     def setup_sessions(self):
         print("\n" + "="*70)
-        print("Magester's Hub - RobloxSniper v" + VERSION)
+        print("Magester's Market - RobloxSniper v" + VERSION)
         print("Licensed Version - " + ("Cherry Picker Mode" if self.cherry_pick_mode else "Full Market Mode"))
         print("="*70 + "\n")
         
@@ -377,7 +375,13 @@ class MarketplaceScanner:
     def scan_marketplace_page(self, scanner_data, cursor=None):
         try:
             url = "https://catalog.roblox.com/v1/search/items/details"
-            params = {"Category": "11", "SalesTypeFilter": "2", "Limit": "30"}
+            params = {
+                "Category": "11",
+                "SalesTypeFilter": "2",
+                "Limit": "30",
+                "CreatorName": "Roblox",
+                "taxonomy": "tZsUsd2BqGViQrJ9Vs3Wah"
+            }
             if cursor:
                 params["Cursor"] = cursor
             
@@ -406,7 +410,7 @@ class MarketplaceScanner:
         return None
     
     def get_item_details(self, scanner_data, asset_id):
-        """Get item name and details from asset ID"""
+        """Get item name and details from asset ID - returns None if not limited/doesn't exist"""
         try:
             url = f"https://catalog.roblox.com/v1/catalog/items/details"
             payload = {"items": [{"itemType": "Asset", "id": asset_id}]}
@@ -416,10 +420,18 @@ class MarketplaceScanner:
                 data = response.json()
                 items = data.get('data', [])
                 if items:
-                    return items[0]
+                    item = items[0]
+                    # Check if item is limited
+                    if item.get('itemRestrictions', []):
+                        if 'Limited' in item.get('itemRestrictions', []) or 'LimitedUnique' in item.get('itemRestrictions', []):
+                            return item
+                    # Item exists but not limited
+                    return {'error': 'not_limited', 'name': item.get('name', 'Unknown')}
+                # Item doesn't exist
+                return {'error': 'not_exist'}
         except:
             pass
-        return None
+        return {'error': 'not_exist'}
     
     def get_lowest_reseller(self, asset_id):
         try:
@@ -554,16 +566,19 @@ class MarketplaceScanner:
                         if items_counter['total'] % 10 == 0:
                             self.log(f"Progress: {items_counter['total']} cherry pick checks")
                     
-                    # Get item details for name
+                    # Get item details for name and validation
                     item_details = self.get_item_details(scanner_data, asset_id)
                     if item_details:
+                        if 'error' in item_details:
+                            # Skip this item, it was already validated during input
+                            continue
                         item = item_details
                     else:
-                        item = {'id': asset_id, 'name': f'Item {asset_id}', 'itemType': 'Asset'}
+                        continue
                     
-                  
+                    # Process the valid limited item
                     self.process_item(scanner_data, item)
-                
+                    
                     time.sleep(0.2)
                 except:
                     pass
@@ -598,41 +613,6 @@ class MarketplaceScanner:
             
             with self.lock:
                 self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
-                    
-                    time.sleep(0.2)
-                except:
-                    pass
-            
-            with self.lock:
-                self.log(f"{scanner_data['account_name']}: Checked {local_items} cherry pick items")
-        
-        else:
-            cursor = None
-        
-            local_items = 0
-            
-            for page in range(self.config['max_pages_per_scan']):
-                items, next_cursor = self.scan_marketplace_page(scanner_data, cursor)
-                if not items:
-                    break
-                
-                local_items += len(items)
-                with self.lock:
-                    items_counter['total'] += len(items)
-                    if items_counter['total'] % self.config['progress_interval'] == 0:
-                        self.log(f"Progress: {items_counter['total']} items scanned")
-                
-                for item in items:
-                    if item.get('itemType') != 'Bundle':
-                        self.process_item(scanner_data, item)
-                
-                if not next_cursor:
-                    break
-                cursor = next_cursor
-                time.sleep(self.config['delay_between_pages'])
-            
-            with self.lock:
-                self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
     
     def run(self):
         if not self.setup_sessions():
@@ -643,9 +623,11 @@ class MarketplaceScanner:
         self.log(f"Configuration:")
         self.log(f"  Buyer: {self.buyer_session['username']}")
         self.log(f"  Scanners: {len(self.scanner_sessions)} accounts")
-        self.log(f"  Mode: {'Cherry Picker' if self.cherry_pick_mode else 'Full Market'}")
+        self.log(f"  Mode: {'Cherry Picker' if self.cherry_pick_mode else 'Full Market (Roblox-Created Items)'}")
         if self.cherry_pick_mode:
             self.log(f"  Monitoring: {len(self.cherry_pick_items)} specific items")
+        else:
+            self.log(f"  Filter: Roblox-created items with taxonomy tZsUsd2BqGViQrJ9Vs3Wah")
         self.log(f"  Discount Threshold: {self.config['discount_threshold']}%")
         self.log(f"  Price Range: {self.config['min_price']:,}R$ - {self.config['max_price']:,}R$")
         if not self.cherry_pick_mode:
@@ -710,7 +692,7 @@ class MarketplaceScanner:
 
 def main():
     print("\n" + "="*70)
-    print("Magester's Hub | Roblox Sniper v" + VERSION)
+    print("Magester's Market | Roblox Sniper v" + VERSION)
     print("Licensed Version")
     print("="*70 + "\n")
     
@@ -735,7 +717,7 @@ def main():
             print("  - Key is invalid or doesn't exist")
             print("  - Key has already been used on another computer")
             print("  - Cannot reach license server (check internet)")
-            print("\nContact Magester's Hub for support")
+            print("\nContact Magester's Market for support")
             sys.exit(1)
         
         license_mgr.save_license(key, l_type)
@@ -766,8 +748,8 @@ def main():
     print("SCANNING MODE SELECTION")
     print("="*70 + "\n")
     print("Choose scanning mode:")
-    print("  1. Full Market Scan - Scans entire marketplace (2M+ items/day)")
-    print("  2. Cherry Picker - Only scans specific items you choose")
+    print("  1. Full Market Scan - Scans Roblox-created limited items (Filtered)")
+    print("  2. Cherry Picker - Only scans specific items you choose (CODE REQUIRED)")
     print()
     
     mode_choice = input("Enter mode (1 or 2): ").strip()
@@ -776,6 +758,23 @@ def main():
     cherry_pick_items = set()
     
     if mode_choice == "2":
+        # Require access code for cherry picker
+        print("\n" + "="*70)
+        print("CHERRY PICKER ACCESS")
+        print("="*70 + "\n")
+        print("Cherry Picker mode requires an access code.")
+        print("Enter the access code to continue:")
+        print()
+        
+        access_code = input("Access Code: ").strip()
+        
+        if access_code != CHERRY_PICKER_CODE:
+            print("\nACCESS DENIED: Invalid access code")
+            print("Contact Magester's Market to purchase Cherry Picker access")
+            sys.exit(1)
+        
+        print("\nACCESS GRANTED: Cherry Picker Mode Unlocked")
+        
         cherry_pick_mode = True
         print("\nCherry Picker Mode Selected")
         print("Enter asset IDs to monitor (one per line)")
@@ -783,24 +782,52 @@ def main():
         print("Example: 1365767, 20573078, etc.")
         print()
         
+        # Use first scanner account for validation
+        temp_scanner = accounts['scanners'][0] if accounts.get('scanners') else accounts.get('buyer')
+        temp_session_obj = requests.Session()
+        temp_session_obj.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json",
+        })
+        temp_session_obj.cookies.set('.ROBLOSECURITY', temp_scanner['cookie'], domain='.roblox.com', path='/')
+        
+        temp_scanner_data = {'session': temp_session_obj}
+        temp_marketplace = MarketplaceScanner(ConfigManager.load(), accounts)
+        
         while True:
             asset_input = input("Asset ID (or 'done'): ").strip()
             if asset_input.lower() == 'done':
                 break
             if asset_input.isdigit():
-                cherry_pick_items.add(int(asset_input))
-                print(f"  Added: {asset_input}")
+                asset_id = int(asset_input)
+                # Validate the item
+                print(f"  Checking item {asset_id}...")
+                item_details = temp_marketplace.get_item_details(temp_scanner_data, asset_id)
+                
+                if item_details:
+                    if 'error' in item_details:
+                        if item_details['error'] == 'not_limited':
+                            print(f"  ❌ Item not limited: {item_details.get('name', 'Unknown')}")
+                        else:
+                            print(f"  ❌ Item does not exist")
+                    else:
+                        item_name = item_details.get('name', 'Unknown')
+                        print(f"  ✓ Added: {item_name} (ID: {asset_id})")
+                        cherry_pick_items.add(asset_id)
+                else:
+                    print(f"  ❌ Could not verify item - skipping")
             else:
                 print("  Invalid - must be a number")
         
         if not cherry_pick_items:
-            print("\nNo items added! Switching to Full Market mode")
+            print("\nNo valid items added! Switching to Full Market mode")
             cherry_pick_mode = False
         else:
-            print(f"\nMonitoring {len(cherry_pick_items)} specific items")
+            print(f"\n✓ Monitoring {len(cherry_pick_items)} valid limited items")
     else:
         print("\nFull Market Scan Mode Selected")
-        print("Will scan entire marketplace")
+        print("Scanning: Roblox-created items (taxonomy: tZsUsd2BqGViQrJ9Vs3Wah)")
+        print("This filters for specific Roblox limited items")
     
     print()
     
