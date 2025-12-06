@@ -47,9 +47,9 @@ CHERRY_PICKER_CODE = "865UB1Magester1BU568"
 # Valid license keys embedded in program
 INITIAL_KEYS = {
     # Monthly Keys (30 days)
-    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
-    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
-    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
+    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
+    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
     "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     "M-2W7K-4N8X-9PL5-6YH3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     "M-6R3Y-8K2H-4NX7-9PL5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
@@ -99,7 +99,7 @@ INITIAL_KEYS = {
     "M-5K9Y-8L3R-2PH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     
     # Lifetime Keys (Permanent)
-    "L-9X4M-7K2P-5NH8-3YR6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
+    "L-9X4M-7K2P-5NH8-3YR6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None}, #used
     "L-4P8L-2Y7K-6RH9-5NX3": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
     "L-7K2R-9P4Y-3LH8-6NX5": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
     "L-5N9L-8R3K-2YH7-4PX6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
