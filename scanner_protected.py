@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 RobloxSniper - Licensed Version with Cherry Picker Mode
-- Full Market Scan: Scans entire marketplace (3-5M items/day)
-- Cherry Picker: Monitor specific items by asset ID
+From Magester's Market
+
+- Full Market Scan: Scans Roblox-created limited items
+- Cherry Picker: Monitor specific items by asset ID (CODE REQUIRED)
 - License key validation
 - HWID locking
 - Auto-update system
@@ -37,7 +39,7 @@ PURCHASE_LOG = APP_DATA_DIR / "purchases.log"
 STATISTICS_FILE = APP_DATA_DIR / "statistics.json"
 
 # Version info for auto-update
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 UPDATE_CHECK_URL = "https://raw.githubusercontent.com/sigmaligmaboy069-bit/roblox-sniper/main/version.json"
 LICENSE_SERVER_URL = "https://robloxlimscannermh.pythonanywhere.com/api/validate"
 
@@ -47,9 +49,9 @@ CHERRY_PICKER_CODE = "865UB1Magester1BU568"
 # Valid license keys embedded in program
 INITIAL_KEYS = {
     # Monthly Keys (30 days)
-    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
-    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
-    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None}, #used
+    "M-7K2P-9X4L-H6TY-3QW8": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-5N8M-2R7V-K9YH-4PT6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
+    "M-3Q9L-6X2N-8WR4-7TH5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     "M-8Y4H-5L9P-2KX6-3NR7": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     "M-2W7K-4N8X-9PL5-6YH3": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     "M-6R3Y-8K2H-4NX7-9PL5": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
@@ -99,7 +101,7 @@ INITIAL_KEYS = {
     "M-5K9Y-8L3R-2PH7-4NX6": {"type": "monthly", "duration_days": 30, "used": False, "hwid": None, "activated_date": None},
     
     # Lifetime Keys (Permanent)
-    "L-9X4M-7K2P-5NH8-3YR6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None}, #used
+    "L-9X4M-7K2P-5NH8-3YR6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
     "L-4P8L-2Y7K-6RH9-5NX3": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
     "L-7K2R-9P4Y-3LH8-6NX5": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
     "L-5N9L-8R3K-2YH7-4PX6": {"type": "lifetime", "used": False, "hwid": None, "activated_date": None},
@@ -135,10 +137,10 @@ DEFAULT_CONFIG = {
     "discount_threshold": 50,
     "max_price": 1000000,
     "min_price": 100,
-    "request_timeout": 5,  # Increased timeout to avoid failed requests
+    "request_timeout": 5,
     "auto_buy_enabled": True,
     "max_pages_per_scan": 250,
-    "delay_between_pages": 0.05,  # Reduced from 0.1 to 0.05
+    "delay_between_pages": 0.05,
     "purchase_delay": 0.15,
     "max_purchase_attempts": 3,
     "progress_interval": 250,
@@ -204,14 +206,13 @@ class LicenseManager:
             if response.status_code == 200:
                 data = response.json()
                 if data.get('valid'):
+      
                     return True, data.get('type', 'Unknown'), data.get('message', '')
-         
                 else:
                     return False, None, data.get('message', 'Invalid key')
             else:
                 return False, None, "Server error"
-       
-
+      
         except Exception as e:
             return False, None, f"Cannot reach license server: {str(e)}"
     
@@ -417,12 +418,11 @@ class MarketplaceScanner:
         return None
     
     def get_item_details(self, scanner_data, asset_id):
-        """Get item name and details from asset ID - returns None if not limited/doesn't exist"""
+        """Get item name and details from asset ID"""
         try:
             url = f"https://catalog.roblox.com/v1/catalog/items/details"
             payload = {"items": [{"itemType": "Asset", "id": asset_id}]}
-            
-            # Add headers to ensure proper request
+       
             headers = {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
@@ -437,9 +437,7 @@ class MarketplaceScanner:
                     item = items[0]
                     item_name = item.get('name', 'Unknown')
                     
-                    # Debug: print the full item data to see structure
-                    # print(f"DEBUG: {json.dumps(item, indent=2)}")
-                    
+      
                     # Check multiple ways if item is limited
                     is_limited = False
                     
@@ -448,7 +446,7 @@ class MarketplaceScanner:
                     if 'Limited' in item_restrictions or 'LimitedUnique' in item_restrictions:
                         is_limited = True
                     
-                    # Method 2: Check if lowestPrice exists (only limiteds have resale)
+                    # Method 2: Check if lowestPrice exists
                     if item.get('lowestPrice') is not None:
                         is_limited = True
                     
@@ -457,21 +455,22 @@ class MarketplaceScanner:
                     if price_status in ['Limited', 'LimitedUnique']:
                         is_limited = True
                     
-                    # Method 4: Check if it has unitsAvailableForConsumption (U limiteds)
+                    # Method 4: Check for unitsAvailableForConsumption
                     if item.get('unitsAvailableForConsumption') is not None:
                         is_limited = True
                     
                     if is_limited:
                         return item
                     else:
-                        # Item exists but not limited
+      
                         return {'error': 'not_limited', 'name': item_name}
                 
-                # Empty response means item doesn't exist
+     
                 return {'error': 'not_exist'}
                 
+       
             elif response.status_code == 429:
-                # Rate limited, wait and retry once
+       
                 time.sleep(2)
                 response = scanner_data['session'].post(url, json=payload, headers=headers, timeout=5, verify=False)
                 if response.status_code == 200:
@@ -481,7 +480,7 @@ class MarketplaceScanner:
                         item = items[0]
                         item_name = item.get('name', 'Unknown')
                         
-                        # Same checks as above
+        
                         is_limited = False
                         item_restrictions = item.get('itemRestrictions', [])
                         if 'Limited' in item_restrictions or 'LimitedUnique' in item_restrictions:
@@ -499,13 +498,13 @@ class MarketplaceScanner:
                         else:
                             return {'error': 'not_limited', 'name': item_name}
                     return {'error': 'not_exist'}
-            
-            # API error
-            print(f"  ⚠️ API returned status code: {response.status_code}")
+
+
             return {'error': 'api_error', 'status': response.status_code}
             
+      
         except Exception as e:
-            print(f"  ⚠️ Exception: {str(e)}")
+      
             return {'error': 'exception', 'message': str(e)}
     
     def get_lowest_reseller(self, asset_id):
@@ -518,8 +517,8 @@ class MarketplaceScanner:
                     return resellers[0].get('userAssetId'), resellers[0].get('seller', {}).get('id')
         except:
             pass
-        return None, None
     
+
     def attempt_purchase(self, asset_id, user_asset_id, price, seller_id):
         try:
             url = f"https://economy.roblox.com/v1/purchases/products/{user_asset_id}"
@@ -613,9 +612,12 @@ class MarketplaceScanner:
             if not resale_data:
                 return
             
+
             lowest_price = resale_data.get('lowest_price')
             rap = resale_data.get('rap')
             
+
+
             if not lowest_price or not rap or lowest_price == 0 or rap == 0:
                 return
             if lowest_price > self.config['max_price'] or lowest_price < self.config['min_price']:
@@ -629,6 +631,7 @@ class MarketplaceScanner:
         except:
             pass
     
+
     def scan_with_scanner(self, scanner_data, items_counter):
         if self.cherry_pick_mode:
             # Cherry picker mode - check specific items only
@@ -641,18 +644,12 @@ class MarketplaceScanner:
                         if items_counter['total'] % 10 == 0:
                             self.log(f"Progress: {items_counter['total']} cherry pick checks")
                     
+
                     # Get item details for name and validation
                     item_details = self.get_item_details(scanner_data, asset_id)
-                    if item_details:
-                        if 'error' in item_details:
-                            # Skip this item, it was already validated during input
-                            continue
+                    if item_details and 'error' not in item_details:
                         item = item_details
-                    else:
-                        continue
-                    
-                    # Process the valid limited item
-                    self.process_item(scanner_data, item)
+                        self.process_item(scanner_data, item)
                     
                     time.sleep(0.2)
                 except:
@@ -662,7 +659,7 @@ class MarketplaceScanner:
                 self.log(f"{scanner_data['account_name']}: Checked {local_items} cherry pick items")
         
         else:
-            # Full market mode - original logic
+            # Full market mode with filters
             cursor = None
             local_items = 0
             
@@ -671,21 +668,26 @@ class MarketplaceScanner:
                 if not items:
                     break
                 
+
+
                 local_items += len(items)
                 with self.lock:
                     items_counter['total'] += len(items)
                     if items_counter['total'] % self.config['progress_interval'] == 0:
                         self.log(f"Progress: {items_counter['total']} items scanned")
                 
+
                 for item in items:
                     if item.get('itemType') != 'Bundle':
                         self.process_item(scanner_data, item)
                 
+
                 if not next_cursor:
                     break
                 cursor = next_cursor
                 time.sleep(self.config['delay_between_pages'])
             
+
             with self.lock:
                 self.log(f"{scanner_data['account_name']}: Completed ({local_items} items)")
     
@@ -694,14 +696,19 @@ class MarketplaceScanner:
             self.log("Failed to set up accounts")
             return
         
+
+
+
         print()
         self.log(f"Configuration:")
         self.log(f"  Buyer: {self.buyer_session['username']}")
         self.log(f"  Scanners: {len(self.scanner_sessions)} accounts")
         self.log(f"  Mode: {'Cherry Picker' if self.cherry_pick_mode else 'Full Market (Roblox-Created Items)'}")
         if self.cherry_pick_mode:
+
             self.log(f"  Monitoring: {len(self.cherry_pick_items)} specific items")
         else:
+
             self.log(f"  Filter: Roblox-created items with taxonomy tZsUsd2BqGViQrJ9Vs3Wah")
         self.log(f"  Discount Threshold: {self.config['discount_threshold']}%")
         self.log(f"  Price Range: {self.config['min_price']:,}R$ - {self.config['max_price']:,}R$")
@@ -709,17 +716,21 @@ class MarketplaceScanner:
             self.log(f"  Pages per Scanner: {self.config['max_pages_per_scan']}")
         self.log(f"  Auto-Buy: {'ENABLED' if self.config['auto_buy_enabled'] else 'DISABLED'}")
         
+        
         print()
         self.log("Starting marketplace scan...")
         self.log("Press Ctrl+C to stop gracefully")
         print()
         
+
         scan_cycle = 0
         try:
+
             while True:
                 scan_cycle += 1
                 cycle_start = time.time()
                 
+
                 print("="*70)
                 self.log(f"Scan Cycle #{scan_cycle} - {datetime.now().strftime('%H:%M:%S')}")
                 print("="*70)
@@ -874,28 +885,29 @@ def main():
             if asset_input.lower() == 'done':
                 break
             if asset_input.isdigit():
+    
+     
                 asset_id = int(asset_input)
-                # Validate the item
+                
                 print(f"  Checking item {asset_id}...")
-                time.sleep(0.5)  # Small delay to avoid rate limiting
+                time.sleep(0.5)
                 item_details = temp_marketplace.get_item_details(temp_scanner_data, asset_id)
                 
                 if item_details:
                     if 'error' in item_details:
                         if item_details['error'] == 'not_limited':
-                            print(f"  ❌ Item not limited: {item_details.get('name', 'Unknown')}")
+                            print(f"  Item not limited: {item_details.get('name', 'Unknown')}")
                         elif item_details['error'] == 'api_error':
-                            print(f"  ❌ API Error - Status: {item_details.get('status', 'unknown')}")
+                            print(f"  API Error - Status: {item_details.get('status', 'unknown')}")
                         elif item_details['error'] == 'exception':
-                            print(f"  ❌ Exception: {item_details.get('message', 'unknown')}")
-                        else:
-                            print(f"  ❌ Item does not exist")
+                            print(f"  Exception: {item_details.get('message', 'unknown')}")
+ 
                     else:
                         item_name = item_details.get('name', 'Unknown')
                         print(f"  ✓ Added: {item_name} (ID: {asset_id})")
                         cherry_pick_items.add(asset_id)
                 else:
-                    print(f"  ❌ Could not verify item - no response")
+                    print(f"  Could not verify item - no response")
             else:
                 print("  Invalid - must be a number")
         
